@@ -1,0 +1,26 @@
+.grading-star{
+    display : flex;
+  }
+  
+  .grading-star input{
+    position : absolute;
+    left     : -100vw;
+  }
+  
+  .grading-star label{
+    width      : 48px;
+    height     : 48px;
+    padding    : 48px 0 0;
+    overflow   : hidden;
+    background : url('stars.svg') no-repeat top left;
+  }
+  
+  .grading-star:not(:hover) input:indeterminate + label,
+  .grading-star:not(:hover) input:checked ~ input + label,
+  .grading-star input:hover ~ input + label{
+    background-position : -48px 0;
+  }
+  
+  .grading-star:not(:hover) input:focus-visible + label{
+    background-position : -96px 0;
+  }
