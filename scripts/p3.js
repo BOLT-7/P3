@@ -1,15 +1,26 @@
 /**
  * Purpose: This file is to provides functionality for the grid and the entire webpage
  *
- * Author(s) / Work Done: Basel Allam - Some global variables & gameplay functions
+ * Author(s) / Work Done: Basel Allam - Some global variables & gameplay functions including loops
  *                        Josh Cole - Drag and drop functionality along with some global variables and display functions
- *                        Zeba Syed - Drag and drop functionality
- *                        Bhaumik Vyas - Restart button functionality
- *                        Philip Jones - Gameplay loop function
- * @author Basel Allam, Josh Cole, Philip Jones, Zeba Syed, Bhaumik Vyas
+ *
+ * @author Basel Allam, Josh Cole
  */
 
 /*Global variables*/
+
+//An array of grid images
+const gridImages = [
+  "./images/wiktm.jpg",
+  "./images/teluisi.jpg",
+  "./images/nin.jpg",
+  "./images/mijisi.jpg",
+  "./images/ltu.jpg",
+  "./images/kil.jpg",
+  "./images/kesalk.jpg",
+  "./images/eliey.jpg",
+  "./images/aqq.jpg",
+];
 
 //An array to hold the audio
 const audioList = [
@@ -38,17 +49,24 @@ const imageList = [
 ];
 
 /*
+  A value in integer format used to store the number of columns in the grid
+  used to display the correct amount of images and information corresponding to 
+  an answer contained in the grid size.
+*/
+var columns = 3;
+
+/*
   A value used to determine what word question is displayed on screen
   Allow for the correct audio to be played for the displayed word question
   Get rid of the old question when the page is reset
   Determine if the user dropped the bear correctly or not
-  */
-let answer = Math.floor(Math.random() * 9);
+*/
+var answer;
 
 /*
   A value in string format to store the number of the image the bear is dropped onto
   so we could use it to show that image again when the page is reset
-  */
+*/
 let dropOn = "";
 
 /*
@@ -110,10 +128,40 @@ function errorFn(err) {
 /**
  * A funciton used to get a new value for answer when the page is reset
  *
- * @author Basel
+ * @author Josh - created and wrote this funtion
  */
 function newAnswer() {
-  answer = Math.floor(Math.random() * 9);
+  // create new random answer with regards to grid size
+  if (columns == 2) {
+    // Array containing image positions for 2x2 grid
+    var numbersArray = [0, 1, 3, 4];
+    answer = numbersArray[Math.floor(Math.random() * numbersArray.length)];
+  } else {
+    answer = Math.floor(Math.random() * 9);
+  }
+
+  // log the columns and answer to console
+  console.log("columns: " + columns);
+  console.log("Answer: " + (answer + 1));
+
+  //shuffle all arrays using the same randomIndex
+  const randomIndex = Math.floor(Math.random() * gridImages.length);
+  for (let i = gridImages.length - 1; i >= 0; i--) {
+    // Swap elements array[i] and array[randomIndex]
+    [gridImages[i], gridImages[randomIndex]] = [
+      gridImages[randomIndex],
+      gridImages[i],
+    ];
+    [audioList[i], audioList[randomIndex]] = [
+      audioList[randomIndex],
+      audioList[i],
+    ];
+    [imageList[i], imageList[randomIndex]] = [
+      imageList[randomIndex],
+      imageList[i],
+    ];
+  }
+  changeImages();
 }
 
 /**
@@ -148,6 +196,25 @@ function resetQuestion() {
 }
 
 /**
+ * A function which actually swaps grid images to a random order
+ *
+ * @author Josh - created and wrote this funtion
+ */
+function changeImages() {
+  // Randomize Images to include correct image in grid
+  // Replace the src attribute with the new image from gridImages
+  document.getElementById("image1").src = gridImages[0];
+  document.getElementById("image2").src = gridImages[1];
+  document.getElementById("image3").src = gridImages[2];
+  document.getElementById("image4").src = gridImages[3];
+  document.getElementById("image5").src = gridImages[4];
+  document.getElementById("image6").src = gridImages[5];
+  document.getElementById("image7").src = gridImages[6];
+  document.getElementById("image8").src = gridImages[7];
+  document.getElementById("image9").src = gridImages[8];
+}
+
+/**
  * This function stores the id of the element thats being dragged under "text"
  * in a common storage area.
  *
@@ -178,17 +245,33 @@ function allowDrop(ev, imageNum) {
   //Stop the default action of an element from happening
   ev.preventDefault();
 
-  //Show all images except the one the bear is being dragged over
-  $("#image1").show();
-  $("#image2").show();
-  $("#image3").show();
-  $("#image4").show();
-  $("#image5").show();
-  $("#image6").show();
-  $("#image7").show();
-  $("#image8").show();
-  $("#image9").show();
-  $("#image" + imageNum).hide();
+  // Show all images except the one the bear is being dragged over
+  if (columns == 3) {
+    $("#image1").show();
+    $("#image2").show();
+    $("#image3").show();
+    $("#image4").show();
+    $("#image5").show();
+    $("#image6").show();
+    $("#image7").show();
+    $("#image8").show();
+    $("#image9").show();
+    $("#image" + imageNum).hide();
+  }
+
+  // hide extra images for 2x2 grid size
+  if (columns == 2) {
+    $("#image1").show();
+    $("#image2").show();
+    $("#image3").hide();
+    $("#image4").show();
+    $("#image5").show();
+    $("#image6").hide();
+    $("#image7").hide();
+    $("#image8").hide();
+    $("#image9").hide();
+    $("#image" + imageNum).hide();
+  }
 }
 
 /**
@@ -236,7 +319,6 @@ function drop(ev, imageNum, cellNum) {
  * & correct answers
  *
  * @author Josh - displaying stars and correctText
- * @author Bhaumik - handling restart, vol and question
  * @author Basel - incrementing the total and correct questions
  */
 function correct() {
@@ -250,7 +332,7 @@ function correct() {
   //Increment the total amount of questions
   obj.total++;
 
-  //Increment the correct amount of question
+  //Increment the correct amount of questions
   obj.correct++;
 }
 
@@ -260,7 +342,6 @@ function correct() {
  * amount of questions
  *
  * @author Josh - displaying suns and incorrectText
- * @author Bhaumik - handling restart, vol and question
  * @author Basel - increment the total questions
  */
 function incorrect() {
@@ -296,13 +377,8 @@ function checkAnswer(imageNum) {
  * @author Josh - Undraggable bear when score is displayed
  */
 function startAgain() {
-  //Storing the value of the answer before resetting it
-  let prevAnswer = answer;
-
-  //Resetting the question with a different answer
-  resetQuestion();
-  newAnswer();
-  loadStartQuestion();
+  // set size of grid and call new question functions
+  createGrid(columns);
 
   //Hiding the correct/incorrect screen and showing the question again
   $("#star1").hide();
@@ -356,7 +432,6 @@ function halfStart() {
  * A function to display the score and hide the question
  *
  * @author Basel - hide the question and show the score
- * @author Philip - diplay the correct score on screen
  */
 function startScore() {
   //Hide the score and sound button
@@ -367,4 +442,58 @@ function startScore() {
 
   //Editing the score to match the current values
   $("#mySpan").text(obj.correct + "/" + obj.total);
+}
+
+/**
+ * Function to create functional grid with the selected number of columns
+ *
+ * @param {*} newcolumns - selected number of columns
+ * @author Josh - Created and wrote this function
+ */
+
+function createGrid(newcolumns) {
+  // Set columns equal to the new number of columns
+  columns = newcolumns;
+
+  // Hide extra images for a 2x2 grid
+  if (columns == 2) {
+    $("#image3").hide();
+    $("#image6").hide();
+    $("#image7").hide();
+    $("#image8").hide();
+    $("#image9").hide();
+  }
+
+  // Show all images for a 3x3 grid
+  if (columns == 3) {
+    $("#image3").show();
+    $("#image6").show();
+    $("#image7").show();
+    $("#image8").show();
+    $("#image9").show();
+  }
+
+  // Allow user to drop bear on all shown grid images
+  // and do not allow user to drop on hidden images
+  if (columns == 2) {
+    cell3.setAttribute("ondragover", false);
+    cell6.setAttribute("ondragover", false);
+    cell7.setAttribute("ondragover", false);
+    cell8.setAttribute("ondragover", false);
+    cell9.setAttribute("ondragover", false);
+  }
+
+  // User can drop on all images for a 3x3 grid
+  if (columns == 3) {
+    cell3.setAttribute("ondragover", "allowDrop(event,3)");
+    cell6.setAttribute("ondragover", "allowDrop(event,6)");
+    cell7.setAttribute("ondragover", "allowDrop(event,7)");
+    cell8.setAttribute("ondragover", "allowDrop(event,8)");
+    cell9.setAttribute("ondragover", "allowDrop(event,9)");
+  }
+
+  //Resetting the question with a different answer
+  resetQuestion();
+  newAnswer();
+  loadStartQuestion();
 }
